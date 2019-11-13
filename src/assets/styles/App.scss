@@ -1,0 +1,76 @@
+@import url('https://fonts.googleapis.com/css?family=Lato&display=swap"');
+
+$theme-font: 'Lato', sans-serif;
+
+.app {
+  display: grid;
+  grid-template-areas:
+      "header header"
+      "aside chat-room"
+      "aside chat-input";
+  grid-template-columns: 30% 70%;
+  grid-template-rows: 80px 75% 80px;
+  height: 100vh; 
+}
+
+.header{
+  grid-area: header;
+  z-index: 10px;
+}
+
+.aside{
+  grid-area: aside;
+  overflow-y: scroll;
+}
+
+.chat-room {
+  display: grid;
+  grid-area: chat-room;
+  grid-template-areas:
+      "entry-chats"
+      "chat-input";
+}
+
+.entry-chats {
+  grid-area: entry-chats;
+  overflow-y: scroll;
+}
+
+.chat-input{
+  grid-area: chat-input;
+}
+
+.message{
+  display: flex;
+  align-items: center;
+}
+
+.message-self{
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+.message-self>.avatar{
+  order: 2;
+}
+
+.message>.alert{
+  margin-bottom: 0;
+}
+.message-self>.alert{
+  margin-bottom: 0;
+}
+
+.login{
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+}
+
+.login-container{
+  background-color: #ffffff;
+  padding: 4em;
+  border-radius: 10px;
+}
