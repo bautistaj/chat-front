@@ -8,65 +8,121 @@ class Home extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      currentUser: {"_id":"5dcb9358a88dc61d7215d8f0","userName":"BAUTISTAJ","name":"Luis","middleName":"Campos","birthday":"02-09-1990","email":"root@hotmail.com","telephone":"0000000000","password":"$2b$10$4A407R1hndI2PiEgBFsC7eSNBvPxlxSYkVu3f6S6DEFI.5t2WENm2","isAdmin":true},
-      data: [],
-      loading: undefined,
-      error: undefined
+      currentUser: {},
+      users: [],
+      messages: [],
+      message: undefined,
+      currentChat: undefined,
+      loading: true,
+      error: false,
+    };
+
+    this.getMessages = this.getMessages.bind(this);
+    this.addMessage = this.addMessage.bind(this);
+    this.onChangeHandler = this.onChangeHandler.bind(this);
+  }
+
+  onChangeHandler(event) {
+    this.setState({message: event.target.value});
+  }
+
+  addMessage(event) {
+    event.preventDefault();
+    const {message} = this.state;
+    
+    if(message) {
+      const newMessage = {
+        'chatId': this.state.currentChat,
+        'userId': this.state.currentUser._id,
+        'message': message,
+        'date': new Date(),
+      };
+      const detail = {
+        method: 'POST',
+        body: JSON.stringify(newMessage),
+        headers: {'Content-Type': 'application/json'},
+      }
+
+      fetch('http://localhost:3000/api/messages/', detail)
+      .then((result) => result.json())
+      .then((response) => {
+        console.log(response);
+      });
     }
   }
 
-  componentDidMount(){
-    this.fetchData();
+  getMessages(userId) {
+    fetch(`http://localhost:3000/api/chats/${userId}`)
+      .then((chat) => chat.json())
+      .then((result) => {
+        const chatId = result.data[0]._id;
+        this.setState({ currentChat: chatId });
+        return fetch(`http://localhost:3000/api/messages/${chatId}`);
+      }).then((messages) => messages.json())
+      .then((result) => {
+        this.setState({ messages: result.data });
+      });
   }
 
-  fetchData() {
-    this.setState({ error: false });
-    this.setState({ loading: true });
-
-    fetch('http://localhost:3000/data')
-    .then((result) =>  result.json())
-    .then((json) => {
-
-      this.setState({ data: json });
-      this.setState({ loading: false });
-
-    }).catch(() => {
-      this.setState({ error: true });
-      this.setState({ loading: false });
-    });
+  componentDidMount() {
+    fetch(`http://localhost:3000/api/users/5dc968d0e2e9fc0e75927d1e`)
+      .then((user) => user.json())
+      .then((result) => {
+        this.setState({ currentUser: result.data });
+        return fetch('http://localhost:3000/api/users');
+      }).then((users) => users.json())
+      .then((result) => {
+        this.setState({ users: result.data, loading: false });
+      });
   }
 
   render() {
-    if( this.state.loading === true){
-      return <p>Loading .... </p>
+    const { loading } = this.state;
+    if (loading === true) {
+      return (<p>Loading .... </p>);
     }
 
-    const {data, currentUser} = this.state;
-    const users =data.filter((user) => user._id !== currentUser._id);
+    let { users, messages } = this.state;
+    const { currentUser } = this.state;
+    users = users.filter((user) => user._id !== currentUser._id);
+    messages = messages.filter((message) => {
+
+      if (message.userId === currentUser._id) {
+        message.messageStyle = 'message-self';
+      }else{
+        message.messageStyle = 'message';
+      }
+
+      return message;
+    });
 
     return (
       <div className='app'>
         <div className='header'>
+          <h1>Healer</h1>
         </div>
-        
         <div className='aside h-100'>
-          <ul className="list-group">
+          <ul className='list-group'>
             {
-              users.map((user) => <UserItem name={ user.userName } count="2" key={user._id}/>)
+              users.map((user) => <div onClick={() => this.getMessages(user._id) } key={user._id} > 
+                <UserItem name={user.userName} count='2' key={user._id} />
+              </div>)
             }
           </ul>
         </div>
-        
         <div className='chat-room'>
           <div className='entry-chats h-100'>
-            <Message style='message' message='Hi!!!' avatar={avatar}/>
+            <>
+              {
+                messages.map((message) => < Message key={message._id} messageStyle={message.messageStyle} message={message.message} avatar={avatar} />)
+              }
+            </>
           </div>
         </div>
-    
         <div className='chat-input h-100'>
-          <form className="form-inline">
-            <input type="text" className="form-control col-sm-9 mb-2 mr-sm-2" id="inlineFormInputName2" placeholder="Mensaje..."/>
-            <button type="submit" className="btn btn-primary col-sm-2 mb-2">Enviar</button>
+          <form className='form-inline' onSubmit={this.addMessage}>
+            <input type='text' onChange={this.onChangeHandler} className='form-control col-sm-9 mb-2 mr-sm-2' id='inlineFormInputName2' placeholder='Mensaje...'/>
+            <button type='submit' className='btn btn-primary col-sm-2 mb-2'>Enviar</button>
           </form>
         </div>
       </div>

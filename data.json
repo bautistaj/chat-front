@@ -1,7 +1,28 @@
 {
-    "data":[
+    "userInSession":{"_id":"5dcb9358a88dc61d7215d8f0","userName":"BAUTISTAJ","name":"Luis","middleName":"Campos","birthday":"02-09-1990","email":"root@hotmail.com","telephone":"0000000000","password":"$2b$10$4A407R1hndI2PiEgBFsC7eSNBvPxlxSYkVu3f6S6DEFI.5t2WENm2","isAdmin":true},
+    "users":[
         {"_id":"5dcb9358a88dc61d7215d8f0","userName":"BAUTISTAJ","name":"Luis","middleName":"Campos","birthday":"02-09-1990","email":"root@hotmail.com","telephone":"0000000000","password":"$2b$10$4A407R1hndI2PiEgBFsC7eSNBvPxlxSYkVu3f6S6DEFI.5t2WENm2","isAdmin":true},
-        {"_id":"5dc968d0e2e9fc0e75927d1e","userName":"CAMPOB","name":"Jose Luis","middleName":"Campos","birthday":"02-09-1990","email":"root1@hotmail.com","telephone":"0000000000","password":"$2b$10$fSlmfqGixprgorUGdpC4juYqqSfkOU.eKARIC7b8fISPIkDJyY8lq","isAdmin":true}
+        {"_id":"5dc968d0e2e9fc0e75927d1e","userName":"CAMPOB","name":"Jose Luis","middleName":"Campos","birthday":"02-09-1990","email":"root1@hotmail.com","telephone":"0000000000","password":"$2b$10$fSlmfqGixprgorUGdpC4juYqqSfkOU.eKARIC7b8fISPIkDJyY8lq","isAdmin":true},
+        {"_id":"5dc968d0e2e9fc0e75927ddw","userName":"ADI","name":"Jose Luis","middleName":"Campos","birthday":"02-09-1990","email":"root1@hotmail.com","telephone":"0000000000","password":"$2b$10$fSlmfqGixprgorUGdpC4juYqqSfkOU.eKARIC7b8fISPIkDJyY8lq","isAdmin":true}
 
+    ],
+    "chats":[
+        {
+            "_id": "5dcb9383a88dc61d7215d8f1",
+            "user": "5dc968d0e2e9fc0e75927d1e",
+            "users": [
+              "5dc968d0e2e9fc0e75927d1e",
+              "5dcb9358a88dc61d7215d8f0"
+            ]
+        }
+    ],
+    "messages":[
+        {
+            "_id": "5dcb93bda88dc61d7215d8f2",
+            "chatId": "5dcb9383a88dc61d7215d8f1",
+            "userId": "5dc968d0e2e9fc0e75927d1e",
+            "message": "Hola",
+            "date": "2019-11-09"
+          }
     ]
 }
