@@ -1,5 +1,6 @@
 import React from 'react';
-import Link from 'react-router-dom'
+import {Link} from 'react-router-dom';
+
 const Login = () => (
   <div className="login">
     <div className='login-container'>
@@ -12,7 +13,7 @@ const Login = () => (
           <input type='password' className='form-control' id='password' placeholder='Password'/>
         </div>
 
-        <button type='submit' className='btn btn-primary'>Login</button>
+        <Link type='submit' className='btn btn-primary' to="/home">Login</Link>
   
       </form>
       <Link to="/register">Registrar</Link>

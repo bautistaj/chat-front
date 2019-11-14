@@ -10,7 +10,8 @@ import '../assets/styles/App.scss'
 const App = () => (
   <BrowserRouter>
       <Switch>
-        <Route exact path="/" component={Login} />
+        <Route exact path="/" component={Home} />
+        <Route exact path="/login" component={Login} />
         <Route component={NotFound} />
       </Switch>
   </BrowserRouter>
