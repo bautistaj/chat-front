@@ -1,5 +1,6 @@
 import React from 'react';
 import fetch from 'node-fetch';
+import socket from 'socket.io-client';
 import UserItem from '../components/UserItem';
 import Message from '../components/Message';
 import avatar from '../assets/static/man.png';
@@ -52,11 +53,15 @@ class Home extends React.Component {
   }
 
   getMessages(userId) {
+    console.log('userId',userId);
+    
     fetch(`http://localhost:3000/api/chats/${userId}`)
       .then((chat) => chat.json())
       .then((result) => {
         const chatId = result.data[0]._id;
         this.setState({ currentChat: chatId });
+        console.log(chatId);
+        
         return fetch(`http://localhost:3000/api/messages/${chatId}`);
       }).then((messages) => messages.json())
       .then((result) => {
@@ -65,6 +70,12 @@ class Home extends React.Component {
   }
 
   componentDidMount() {
+    const URI = 'http://localhost:3000';
+    const socketClient = socket(URI);
+    socketClient.on('message', (data) => {
+      this.setState({ messages: [ ...this.state.messages, data ] });
+    });
+
     fetch(`http://localhost:3000/api/users/5dc968d0e2e9fc0e75927d1e`)
       .then((user) => user.json())
       .then((result) => {
@@ -73,7 +84,7 @@ class Home extends React.Component {
       }).then((users) => users.json())
       .then((result) => {
         this.setState({ users: result.data, loading: false });
-      });
+    });
   }
 
   render() {
