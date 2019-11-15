@@ -1,39 +1,53 @@
 import React from 'react';
 import fetch from 'node-fetch';
+import { connect } from 'react-redux';
+import { Redirect } from 'react-router-dom'
 import UserItem from '../components/UserItem';
 import Message from '../components/Message';
 import avatar from '../assets/static/man.png';
+import socket from 'socket.io-client';
 
 class Home extends React.Component {
   constructor(props) {
     super(props);
+
     this.state = {
-      currentUser: {},
-      users: [],
-      messages: [],
-      message: undefined,
-      currentChat: undefined,
-      loading: true,
-      error: false,
+      loading: undefined,
+      error: undefined,
+      users: []
     };
 
-    this.getMessages = this.getMessages.bind(this);
     this.addMessage = this.addMessage.bind(this);
     this.onChangeHandler = this.onChangeHandler.bind(this);
+  }
+
+  componentDidMount() {
+    const URI = 'http://localhost:3000';
+    const socketClient = socket(URI);
+    socketClient.on('message', (data) => {
+
+      this.setState(prevState => ({
+        messages: [...prevState.messages, data]
+      }));
+
+    });
+
+    this.getUsers();
   }
 
   onChangeHandler(event) {
     this.setState({message: event.target.value});
   }
 
-  addMessage(event) {
+  async addMessage(event) {
     event.preventDefault();
-    const {message} = this.state;
+    const {currentUser} = this.props;
+    const {message, currentChatId} = this.state;
     
     if(message) {
       const newMessage = {
-        'chatId': this.state.currentChat,
-        'userId': this.state.currentUser._id,
+        'chatId': currentChatId,
+        'userId': currentUser.id,
         'message': message,
         'date': new Date(),
       };
@@ -43,64 +57,67 @@ class Home extends React.Component {
         headers: {'Content-Type': 'application/json'},
       }
 
-      fetch('http://localhost:3000/api/messages/', detail)
-      .then((result) => result.json())
-      .then((response) => {
-        console.log(response);
-      });
+      const messageSaved = await fetch('http://localhost:3000/api/messages/', detail)
+      .then((result) => result.json());
+      
     }
   }
 
-  getMessages(userId) {
-    fetch(`http://localhost:3000/api/chats/${userId}`)
-      .then((chat) => chat.json())
-      .then((result) => {
-        const chatId = result.data[0]._id;
-        this.setState({ currentChat: chatId });
-        return fetch(`http://localhost:3000/api/messages/${chatId}`);
-      }).then((messages) => messages.json())
-      .then((result) => {
-        this.setState({ messages: result.data });
-      });
+  async getUsers() {
+    this.setState({loading: true });
+    
+    const dataResponse = await fetch('http://localhost:3000/api/users')
+    .then((dataResponse) => dataResponse.json());
+
+    this.setState({loading: false, users: dataResponse.data });
   }
 
-  componentDidMount() {
-    fetch(`http://localhost:3000/api/users/5dc968d0e2e9fc0e75927d1e`)
-      .then((user) => user.json())
-      .then((result) => {
-        this.setState({ currentUser: result.data });
-        return fetch('http://localhost:3000/api/users');
-      }).then((users) => users.json())
-      .then((result) => {
-        this.setState({ users: result.data, loading: false });
-      });
+  async getMessages(userId) {
+    this.setState({loading: true });
+
+    const currentChat = await fetch(`http://localhost:3000/api/chats/${userId}`)
+    .then((chat) => chat.json());
+    
+    const currentMessages = await fetch(`http://localhost:3000/api/messages/${currentChat.data[0]._id}`)
+    .then((messages) => messages.json());
+
+    this.setState({loading: false, messages: currentMessages.data, currentChatId: currentChat.data[0]._id });
+
   }
 
   render() {
-    const { loading } = this.state;
-    if (loading === true) {
-      return (<p>Loading .... </p>);
+    const {currentUser} = this.props;
+    const {messages} = this.state;
+    let cleanMessages = [];
+
+    if(this.state.loading === true) {
+      return <h1>Loading ...</h1>
     }
 
-    let { users, messages } = this.state;
-    const { currentUser } = this.state;
-    users = users.filter((user) => user._id !== currentUser._id);
-    messages = messages.filter((message) => {
+    if(this.state.error === true){
+      return <h1>Error</h1>
+    }
 
-      if (message.userId === currentUser._id) {
-        message.messageStyle = 'message-self';
-      }else{
-        message.messageStyle = 'message';
-      }
+    if(currentUser === undefined){
+      return <Redirect to='/login'/>
+    }
 
-      return message;
-    });
+    const users = this.state.users.filter((user) => user._id !== currentUser.id);
+
+    if(messages){
+      cleanMessages = messages.filter((message) => {
+        if (message.userId === currentUser.id) {
+          message.messageStyle = 'message-self';
+        }else{
+          message.messageStyle = 'message';
+        }
+  
+        return message;
+      });
+    }
 
     return (
       <div className='app'>
-        <div className='header'>
-          <h1>Healer</h1>
-        </div>
         <div className='aside h-100'>
           <ul className='list-group'>
             {
@@ -114,7 +131,7 @@ class Home extends React.Component {
           <div className='entry-chats h-100'>
             <>
               {
-                messages.map((message) => < Message key={message._id} messageStyle={message.messageStyle} message={message.message} avatar={avatar} />)
+                cleanMessages.map((message) => < Message key={message._id} messageStyle={message.messageStyle} message={message.message} avatar={avatar} />)
               }
             </>
           </div>
@@ -130,4 +147,14 @@ class Home extends React.Component {
   }
 }
 
-export default Home;
+const mapStateToProps = state => {
+  return {
+    currentUser: state.currentUser,
+    users: state.users,
+    currentChatId: state.currentChatId,
+    messages: state.messages,
+  };
+};
+
+
+export default connect(mapStateToProps, null)(Home);

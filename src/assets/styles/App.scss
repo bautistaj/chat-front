@@ -5,12 +5,11 @@ $theme-font: 'Lato', sans-serif;
 .app {
   display: grid;
   grid-template-areas:
-      "header header"
       "aside chat-room"
       "aside chat-input";
   grid-template-columns: 30% 70%;
-  grid-template-rows: 80px 75% 80px;
-  height: 100vh; 
+  grid-template-rows: 90% 10%;
+  height: 90vh;
 }
 
 .header{
@@ -62,7 +61,7 @@ $theme-font: 'Lato', sans-serif;
 }
 
 .login{
-  height: 100vh;
+  height: 90vh;
   display: flex;
   align-items: center;
   justify-content: center;

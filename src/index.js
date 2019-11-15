@@ -6,11 +6,11 @@ import { createStore } from 'redux';
 import reducer from './reducers';
 
 const initialState = {
-  currentUser: {},
+  currentUser: undefined,
   users: [],
   messages: [],
   message: undefined,
-  currentChat: undefined,
+  currentChatId: undefined,
   loading: true,
   error: false,
 };

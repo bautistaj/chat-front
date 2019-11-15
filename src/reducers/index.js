@@ -5,6 +5,21 @@ const reducer = (state, action) => {
         ...state,
         currentUser: action.payload,
       };
+    case 'SET_USERS':
+      return {
+        ...state,
+        users: action.payload,
+      };
+    case 'SET_CURRENT_CHAT_ID':
+      return {
+        ...state,
+        currentChatId: action.payload,
+      };
+    case 'SET_CURRENT_CHATS':
+      return {
+        ...state,
+        messages: [...state.messages, action.payload],
+      };
     default:
       return state;
   }

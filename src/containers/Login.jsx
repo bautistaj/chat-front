@@ -1,47 +1,40 @@
 import React, { useState }  from 'react';
-import {connect} from 'react-redux';
-import { Redirect } from 'react-router-dom';
+import { connect } from 'react-redux';
 import fetch from 'node-fetch';
-import { setCurrentUser } from '../actions';
-const base64 = require('base-64');
+import {setCurrentUser} from '../actions';
+var base64 = require('base-64');
 
-const Login = props => {
-  const [form, setValues] = useState({
-    email: '', user: {},
-  });
+
+const Login = (props) => {
+  const [data, setValues] = useState({});
 
   const handleInput = event => {
     setValues({
-      ...form,
+      ...data,
       [event.target.name]: event.target.value
-    })
+    });
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    const data = base64.encode(`${form.email}:${form.password}`);
+    const dataToAccess = base64.encode(`${data.email}:${data.password}`);
+    
     const body = {
       method: 'POST',
       headers: {
-        'Authorization': `Basic ${data}`,
+        'Authorization': `Basic ${dataToAccess}`,
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ apiKeyToken: '8251b7df4773748ecbd2335b4adea25ff22a6398e42705532d0ce5299fdcbdb8'}),
     };
-
-    fetch('http://localhost:3000/api/auth/sign-in', body)
-    .then((resul) => resul.json())
-    .then((json) => {
-      console.log(json.user);
-      props.setCurrentUser(json.user);
-      props.history.push('/');
-    }).catch((error) => {
-      console.log(error);
-    });
+    
+    const result = await fetch('http://localhost:3000/api/auth/sign-in', body).then((resul) => resul.json());
+    props.setCurrentUser(result.user);
+    props.history.push('/');
   }
 
-  return(
+  return (
   <div className="login">
     <div className='login-container'>
       <form onSubmit={handleSubmit}>
