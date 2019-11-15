@@ -1,6 +1,9 @@
 import React, { useState }  from 'react';
-var base64 = require('base-64');
+import {connect} from 'react-redux';
+import { Redirect } from 'react-router-dom';
 import fetch from 'node-fetch';
+import { setCurrentUser } from '../actions';
+const base64 = require('base-64');
 
 const Login = props => {
   const [form, setValues] = useState({
@@ -17,11 +20,6 @@ const Login = props => {
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = base64.encode(`${form.email}:${form.password}`);
-
-    const header = {
-      Authorization: `Basic ${data}`
-    };
-    
     const body = {
       method: 'POST',
       headers: {
@@ -36,10 +34,10 @@ const Login = props => {
     .then((resul) => resul.json())
     .then((json) => {
       console.log(json.user);
-      
-      setValues({user: json.user});
-      console.log(form);
-      
+      props.setCurrentUser(json.user);
+      props.history.push('/');
+    }).catch((error) => {
+      console.log(error);
     });
   }
 
@@ -62,5 +60,8 @@ const Login = props => {
   )
 };
 
+const mapDispatchToProps = {
+  setCurrentUser,
+};
 
-export default Login;
+export default connect(null, mapDispatchToProps)(Login);
