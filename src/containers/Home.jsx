@@ -25,10 +25,13 @@ class Home extends React.Component {
     const URI = 'http://localhost:3000';
     const socketClient = socket(URI);
     socketClient.on('message', (data) => {
+      const {currentChatId} = this.state;
 
-      this.setState(prevState => ({
-        messages: [...prevState.messages, data]
-      }));
+      if(currentChatId !== undefined && currentChatId === data.chatId){
+        this.setState(prevState => ({
+          messages: [...prevState.messages, data]
+        }));
+      }
 
     });
 
@@ -63,6 +66,43 @@ class Home extends React.Component {
     }
   }
 
+  async getMessages(userId) {
+    this.setState({loading: true });
+    const {currentUser} = this.props;
+    const users = `${currentUser.id},${userId}`;
+    
+    let currentChatId = undefined;
+    let messages = [];
+
+    const currentChat = await fetch(`http://localhost:3000/api/chats/${users}`)
+    .then((chat) => chat.json());
+
+    if(currentChat.data.length === 0){
+      const newChat = {
+	      users: [currentUser.id,userId]
+      }
+      const detail = {
+        method: 'POST',
+        body: JSON.stringify(newChat),
+        headers: {'Content-Type': 'application/json'},
+      }
+      
+      const responseNewChatId =  await fetch(`http://localhost:3000/api/chats/`,detail)
+      .then((chat) => chat.json());
+      currentChatId = responseNewChatId.data;
+      messages = [];
+
+    }else {
+      const currentMessages = await fetch(`http://localhost:3000/api/messages/${currentChat.data[0]._id}`)
+    .then((messages) => messages.json());
+    currentChatId = currentChat.data[0]._id;
+
+      messages = currentMessages.data;
+    }
+    
+    this.setState({loading: false, messages: messages, currentChatId: currentChatId });  
+  }
+  
   async getUsers() {
     this.setState({loading: true });
     
@@ -70,19 +110,6 @@ class Home extends React.Component {
     .then((dataResponse) => dataResponse.json());
 
     this.setState({loading: false, users: dataResponse.data });
-  }
-
-  async getMessages(userId) {
-    this.setState({loading: true });
-
-    const currentChat = await fetch(`http://localhost:3000/api/chats/${userId}`)
-    .then((chat) => chat.json());
-    
-    const currentMessages = await fetch(`http://localhost:3000/api/messages/${currentChat.data[0]._id}`)
-    .then((messages) => messages.json());
-
-    this.setState({loading: false, messages: currentMessages.data, currentChatId: currentChat.data[0]._id });
-
   }
 
   render() {
