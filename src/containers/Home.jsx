@@ -6,11 +6,14 @@ import UserItem from '../components/UserItem';
 import Message from '../components/Message';
 import avatar from '../assets/static/man.png';
 import socket from 'socket.io-client';
+import Loader from '../components/Loader';
+import util from '../util';
+import swal from 'sweetalert';
 
 class Home extends React.Component {
   constructor(props) {
     super(props);
-
+    this.API ='http://localhost:3000/api';
     this.state = {
       loading: undefined,
       error: undefined,
@@ -26,13 +29,11 @@ class Home extends React.Component {
     const socketClient = socket(URI);
     socketClient.on('message', (data) => {
       const {currentChatId} = this.state;
-
       if(currentChatId !== undefined && currentChatId === data.chatId){
         this.setState(prevState => ({
           messages: [...prevState.messages, data]
         }));
       }
-
     });
 
     this.getUsers();
@@ -60,7 +61,7 @@ class Home extends React.Component {
         headers: {'Content-Type': 'application/json'},
       }
 
-      const messageSaved = await fetch('http://localhost:3000/api/messages/', detail)
+      const messageSaved = await fetch(`${this.API}/messages/`, detail)
       .then((result) => result.json());
       
     }
@@ -74,7 +75,7 @@ class Home extends React.Component {
     let currentChatId = undefined;
     let messages = [];
 
-    const currentChat = await fetch(`http://localhost:3000/api/chats/${users}`)
+    const currentChat = await fetch(`${this.API}/chats/${users}`)
     .then((chat) => chat.json());
 
     if(currentChat.data.length === 0){
@@ -87,15 +88,15 @@ class Home extends React.Component {
         headers: {'Content-Type': 'application/json'},
       }
       
-      const responseNewChatId =  await fetch(`http://localhost:3000/api/chats/`,detail)
+      const responseNewChatId =  await fetch(`${this.API}/chats/`,detail)
       .then((chat) => chat.json());
       currentChatId = responseNewChatId.data;
       messages = [];
 
     }else {
-      const currentMessages = await fetch(`http://localhost:3000/api/messages/${currentChat.data[0]._id}`)
-    .then((messages) => messages.json());
-    currentChatId = currentChat.data[0]._id;
+      const currentMessages = await fetch(`${this.API}/messages/${currentChat.data[0]._id}`)
+      .then((messages) => messages.json());
+      currentChatId = currentChat.data[0]._id;
 
       messages = currentMessages.data;
     }
@@ -105,8 +106,7 @@ class Home extends React.Component {
   
   async getUsers() {
     this.setState({loading: true });
-    
-    const dataResponse = await fetch('http://localhost:3000/api/users')
+    const dataResponse = await fetch(`${this.API}/users`)
     .then((dataResponse) => dataResponse.json());
 
     this.setState({loading: false, users: dataResponse.data });
@@ -114,14 +114,14 @@ class Home extends React.Component {
 
   render() {
     const {currentUser} = this.props;
-    const {messages} = this.state;
+    const {messages, currentChatId} = this.state;
     let cleanMessages = [];
 
     if(this.state.loading === true) {
-      return <h1>Loading ...</h1>
+      return <Loader />
     }
 
-    if(this.state.error === true){
+    if(this.state.error === true) {
       return <h1>Error</h1>
     }
 
@@ -132,24 +132,16 @@ class Home extends React.Component {
     const users = this.state.users.filter((user) => user._id !== currentUser.id);
 
     if(messages){
-      cleanMessages = messages.filter((message) => {
-        if (message.userId === currentUser.id) {
-          message.messageStyle = 'message-self';
-        }else{
-          message.messageStyle = 'message';
-        }
-  
-        return message;
-      });
+      cleanMessages = util.cleanMessages(messages, currentUser);
     }
 
     return (
-      <div className='app'>
+      <div className='app container'>
         <div className='aside h-100'>
           <ul className='list-group'>
             {
               users.map((user) => <div onClick={() => this.getMessages(user._id) } key={user._id} > 
-                <UserItem name={user.userName} count='2' key={user._id} />
+                <UserItem name={user.userName} key={user._id} />
               </div>)
             }
           </ul>
@@ -163,12 +155,14 @@ class Home extends React.Component {
             </>
           </div>
         </div>
-        <div className='chat-input h-100'>
-          <form className='form-inline' onSubmit={this.addMessage}>
-            <input type='text' onChange={this.onChangeHandler} className='form-control col-sm-9 mb-2 mr-sm-2' id='inlineFormInputName2' placeholder='Mensaje...'/>
-            <button type='submit' className='btn btn-primary col-sm-2 mb-2'>Enviar</button>
-          </form>
-        </div>
+        { currentChatId &&
+          <div className='chat-input h-100'>
+            <form className='form-inline' onSubmit={this.addMessage}>
+              <input type='text' onChange={this.onChangeHandler} className='form-control col-sm-9 mb-2 mr-sm-2' id='inlineFormInputName2' placeholder='Mensaje...'/>
+              <button type='submit' className='btn btn-primary col-sm-2 mb-2'>Enviar</button>
+            </form>
+          </div>
+        }
       </div>
     );
   }
@@ -176,10 +170,7 @@ class Home extends React.Component {
 
 const mapStateToProps = state => {
   return {
-    currentUser: state.currentUser,
-    users: state.users,
-    currentChatId: state.currentChatId,
-    messages: state.messages,
+    currentUser: state.currentUser
   };
 };
 

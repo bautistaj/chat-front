@@ -73,3 +73,10 @@ $theme-font: 'Lato', sans-serif;
   padding: 4em;
   border-radius: 10px;
 }
+
+.loader{
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
